@@ -15,7 +15,7 @@ export const metadata = {
   openGraph: {
     title: 'NovaOrbit | Solar Design & Savings Calculator',
     description: 'Design your solar system and calculate energy savings instantly with NovaOrbit.',
-    url: 'https://novaorbit.com',
+    url: 'https://novaorbit.org',
     siteName: 'NovaOrbit',
     images: [
       {
@@ -52,8 +52,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={manrope.className}>
-        <Navbar />
-        {children}
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
+          <main className="flex-1 pt-24">
+            {children}
+          </main>
+        </div>
       </body>
     </html>
   )
