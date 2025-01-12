@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Address is required' }, { status: 400 });
   }
 
-  if (!process.env.GOOGLE_MAPS_API_KEY) {
+  if (!process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) {
     console.error('Google Maps API key is not configured');
     return NextResponse.json({ 
       error: 'Server configuration error' 
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
 
   const url = new URL('https://maps.googleapis.com/maps/api/geocode/json');
   url.searchParams.append('address', address);
-  url.searchParams.append('key', process.env.GOOGLE_MAPS_API_KEY);
+  url.searchParams.append('key', process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY);
 
   try {
     const response = await fetch(url.toString());

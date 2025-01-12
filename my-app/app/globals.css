@@ -18,3 +18,19 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.panel-overlay {
+  transition: transform 0.2s ease-out;
+}
+
+.panel-overlay:hover {
+  box-shadow: 0 0 0 2px #0047FF;
+}
+
+/* Ghost panel styles */
+.ghost-panel {
+  pointer-events: none;
+  position: fixed;
+  z-index: 1000;
+  transform-origin: center center;
+  transition: transform 0.1s ease-out;
+}
