@@ -1,5 +1,5 @@
 // components/SolarRoofDesigner.tsx
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -61,12 +61,12 @@ export default function SolarRoofDesigner({ lat, lng, onUpdate }: SolarRoofDesig
 
   const initializeMap = () => {
     if (!mapRef.current || !window.google) return;
-
+  
     const mapInstance = new google.maps.Map(mapRef.current, {
       center: { lat, lng },
       zoom: 20,
       mapTypeId: 'satellite',
-      tilt: 0, // Start with 2D view
+      tilt: 0,
       zoomControl: true,
       mapTypeControl: true,
       scaleControl: true,
@@ -74,7 +74,7 @@ export default function SolarRoofDesigner({ lat, lng, onUpdate }: SolarRoofDesig
       rotateControl: true,
       fullscreenControl: true
     });
-
+  
     const drawingManager = new google.maps.drawing.DrawingManager({
       drawingMode: google.maps.drawing.OverlayType.POLYGON,
       drawingControl: true,
@@ -91,59 +91,81 @@ export default function SolarRoofDesigner({ lat, lng, onUpdate }: SolarRoofDesig
         draggable: true
       }
     });
-
+  
     drawingManager.setMap(mapInstance);
-
-    google.maps.event.addListener(drawingManager, 'polygoncomplete', (polygon: google.maps.Polygon) => {
-      setActivePolygons(prev => [...prev, polygon]);
-      updateCalculations([...activePolygons, polygon]);
-
-      google.maps.event.addListener(polygon.getPath(), 'set_at', () => {
-        updateCalculations(activePolygons);
-      });
-      google.maps.event.addListener(polygon.getPath(), 'insert_at', () => {
-        updateCalculations(activePolygons);
-      });
-
-      google.maps.event.addListener(polygon, 'rightclick', () => {
-        polygon.setMap(null);
-        setActivePolygons(prev => prev.filter(p => p !== polygon));
-        updateCalculations(activePolygons.filter(p => p !== polygon));
-      });
-    });
-
+  
+    // Use handlePolygonComplete for new polygons
+    google.maps.event.addListener(drawingManager, 'polygoncomplete', handlePolygonComplete);
+  
     setMap(mapInstance);
     setIsLoading(false);
   };
-
-  const updateCalculations = (polygons: google.maps.Polygon[]) => {
-    let totalArea = 0;
-    polygons.forEach(polygon => {
-      totalArea += google.maps.geometry.spherical.computeArea(polygon.getPath());
+  
+  const handlePolygonComplete = useCallback((polygon: google.maps.Polygon) => {
+    // Add the new polygon to state
+    setActivePolygons(prev => {
+      const newPolygons = [...prev, polygon];
+      
+      // Setup listeners
+      const path = polygon.getPath();
+      
+      // Handle path edits
+      path.addListener('set_at', () => {
+        updateCalculations([...newPolygons]);
+      });
+      
+      path.addListener('insert_at', () => {
+        updateCalculations([...newPolygons]);
+      });
+      
+      // Handle polygon deletion
+      polygon.addListener('rightclick', () => {
+        polygon.setMap(null);
+        const remainingPolygons = newPolygons.filter(p => p !== polygon);
+        setActivePolygons(remainingPolygons);
+        updateCalculations(remainingPolygons);
+      });
+  
+      // Calculate with the new polygon
+      updateCalculations(newPolygons);
+      return newPolygons;
     });
-
+  }, []);
+  
+  const updateCalculations = useCallback((polygons: google.maps.Polygon[]) => {
+    let totalArea = 0;
+    
+    // Calculate total area from all polygons
+    polygons.forEach(polygon => {
+      if (polygon && polygon.getPath()) {
+        const area = google.maps.geometry.spherical.computeArea(polygon.getPath());
+        totalArea += area;
+      }
+    });
+  
+    // Calculations
     const panelArea = 1.6; // m²
     const utilizationFactor = 0.9;
     const maxPanels = Math.floor((totalArea * utilizationFactor) / panelArea);
     
-    // Updated financial calculations
     const wattsPerPanel = 400;
     const systemSize = (maxPanels * wattsPerPanel) / 1000; // kW
-    const averageSunHours = 4.5; // Average daily sun hours
+    const averageSunHours = 4.5;
     const annualProduction = systemSize * averageSunHours * 365;
-    const costPerWatt = 2.8; // Updated cost per watt installed
+    const costPerWatt = 2.8;
     const estimatedCost = systemSize * 1000 * costPerWatt;
-
-    const newDesignData = {
-      systemSize,
-      annualProduction,
-      estimatedCost,
-      panelCount: maxPanels,
-      roofArea: totalArea
-    };
-
-    onUpdate(newDesignData);
-  };
+  
+    // Only update if we have valid numbers
+    if (systemSize > 0 && annualProduction > 0) {
+      onUpdate({
+        systemSize,
+        annualProduction,
+        estimatedCost,
+        panelCount: maxPanels,
+        roofArea: totalArea
+      });
+    }
+  }, [onUpdate]);
 
   return (
     <div className="space-y-4 bg-gray-100">

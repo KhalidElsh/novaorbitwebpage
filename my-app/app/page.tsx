@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import AddressInput from '@/components/AddressInput';
 import SolarRoofDesigner from '@/components/SolarRoofDesigner';
 import ProjectionsDashboard from '@/components/ProjectionsDashboard';
+import ElectricityUsageInput from '@/components/ElectricityUsageInput';
 import LeadCaptureForm from '@/components/LeadCaptureForm';
 import { VerifiedAddress } from '@/lib/googleMaps';
 import VideoBackground from '@/components/VideoBackground';
@@ -16,19 +17,23 @@ interface DesignData {
   roofArea: number;
 }
 
+interface ElectricityData {
+  monthlyUsage: number;
+  monthlyBill: number;
+}
+
 export default function SolarDesignPage() {
   const [addressData, setAddressData] = useState<VerifiedAddress | null>(null);
-  const [designData, setDesignData] = useState<DesignData>({
-    systemSize: 10,
-    annualProduction: 14000,
-    estimatedCost: 28000,
-    panelCount: 25,
-    roofArea: 40
+  const [designData, setDesignData] = useState<DesignData | null>(null);
+  // Set default electricity data instead of null
+  const [electricityData, setElectricityData] = useState<ElectricityData>({
+    monthlyUsage: 1000, // Default values
+    monthlyBill: 150
   });
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [timeLeft, setTimeLeft] = useState(120); // 2 minutes in seconds
 
-  const handleAddressSubmit = async (verifiedAddress: VerifiedAddress) => {
+  const handleAddressSubmit = useCallback(async (verifiedAddress: VerifiedAddress) => {
     setAddressData(verifiedAddress);
     // Start countdown when address is submitted
     const timer = setInterval(() => {
@@ -40,36 +45,54 @@ export default function SolarDesignPage() {
         return prev - 1;
       });
     }, 1000);
-  };
+  }, []);
 
-  const handleDesignUpdate = (newDesignData: DesignData) => {
-    setDesignData(newDesignData);
-  };
+  const handleDesignUpdate = useCallback((newDesignData: DesignData) => {
+    if (newDesignData.systemSize > 0) {
+      setDesignData(newDesignData);
+    }
+  }, []);
 
-  const formatTime = (seconds: number) => {
+  const handleElectricityUpdate = useCallback((data: ElectricityData) => {
+    if (data.monthlyBill > 0 && data.monthlyUsage > 0) {
+      setElectricityData(data);
+    }
+  }, []);
+
+  const formatTime = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  }, []);
 
   return (
     <div className="min-h-screen">
-      {!addressData && <VideoBackground />}
-
       <div className="relative z-10">
         <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
           {!addressData ? (
-            <div className="text-center mb-12">
-              <h1 className="text-5xl font-bold text-white mb-6">
-                Design Your Solar Future
-              </h1>
-              <p className="text-xl text-white/90 mb-8">
-                Get an instant custom design and savings estimate
-              </p>
-              <div className="max-w-2xl mx-auto backdrop-blur-sm bg-white/10 p-6 rounded-lg">
-                <AddressInput onSubmit={handleAddressSubmit} />
+            <>
+              {/* Video background only shown on initial screen */}
+              <div className="fixed inset-0 -z-10">
+                <VideoBackground />
               </div>
-            </div>
+              
+              <div className="min-h-[calc(100vh-6rem)] flex items-center justify-center">
+                <div className="text-center">
+                  <h1 className="text-6xl font-light text-white mb-8">
+                    Own Your Energy Future.
+                  </h1>
+                  <h2 className="text-3xl font-light text-white mb-12">
+                    Empower Your Business. Save Thousands Doing So.
+                  </h2>
+                  <p className="text-lg text-white/80 mb-12 font-light">
+                    Empowering businesses to save with no out of pocket cost.
+                  </p>
+                  <div className="max-w-3xl mx-auto">
+                    <AddressInput onSubmit={handleAddressSubmit} />
+                  </div>
+                </div>
+              </div>
+            </>
           ) : (
             <div className="space-y-8 bg-white rounded-lg p-6">
               {/* Lead Magnet Button */}
@@ -97,17 +120,26 @@ export default function SolarDesignPage() {
                 </div>
               </div>
 
+              {/* Electricity Usage Input */}
+              <ElectricityUsageInput onUpdate={handleElectricityUpdate} />
+
               {/* Main Content */}
               <SolarRoofDesigner
                 lat={addressData.lat}
                 lng={addressData.lon}
                 onUpdate={handleDesignUpdate}
               />
-              <ProjectionsDashboard 
-                systemSize={designData.systemSize}
-                estimatedCost={designData.estimatedCost}
-                annualProduction={designData.annualProduction}
-              />
+
+              {/* Show projections if we have design data (electricity data is always present now) */}
+              {designData && (
+                <ProjectionsDashboard 
+                  systemSize={designData.systemSize}
+                  estimatedCost={designData.estimatedCost}
+                  annualProduction={designData.annualProduction}
+                  monthlyUsage={electricityData.monthlyUsage}
+                  monthlyBill={electricityData.monthlyBill}
+                />
+              )}
             </div>
           )}
         </div>
@@ -118,6 +150,8 @@ export default function SolarDesignPage() {
         <LeadCaptureForm
           onClose={() => setShowLeadForm(false)}
           searchedAddress={addressData?.formatted_address || ''}
+          designData={designData}
+          electricityData={electricityData}
         />
       )}
     </div>
