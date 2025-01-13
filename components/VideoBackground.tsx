@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import backgroundVideo from '@/public/assets/background.mp4'; // Import video at the top
 
 const VideoBackground = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -21,7 +20,6 @@ const VideoBackground = () => {
 
   const handleError = (error: any) => {
     console.error('Video loading error:', error);
-    console.error('Video source:', backgroundVideo);
     setHasError(true);
     setIsLoading(false);
   };
@@ -63,7 +61,11 @@ const VideoBackground = () => {
         `}
       >
         <source 
-          src={backgroundVideo}
+          src="/background.webm"
+          type="video/webm"
+        />
+        <source 
+          src="/assets/background.mp4"
           type="video/mp4"
         />
         Your browser does not support the video tag.
