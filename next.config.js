@@ -1,10 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
-  experimental: {
-    // Remove or disable optimizeCss since it's causing issues
-    // optimizeCss: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -16,10 +12,15 @@ const nextConfig = {
       test: /\.(mp4|webm)$/,
       type: 'asset/resource',
       generator: {
-        filename: 'static/media/[name].[hash][ext]'
+        // Change this to output to the public directory
+        filename: 'static/media/[name][ext]' // Removed [hash] to keep filename consistent
       }
     });
     return config;
+  },
+  // Add this to ensure static files are copied correctly
+  publicRuntimeConfig: {
+    staticFolder: '/static',
   }
 };
 
