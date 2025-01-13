@@ -7,7 +7,7 @@ import ProjectionsDashboard from '@/components/ProjectionsDashboard';
 import ElectricityUsageInput from '@/components/ElectricityUsageInput';
 import LeadCaptureForm from '@/components/LeadCaptureForm';
 import { VerifiedAddress } from '@/lib/googleMaps';
-import VideoBackground from '@/components/VideoBackground';
+import VideoBackground from '../components/VideoBackground';
 
 interface DesignData {
   systemSize: number;
