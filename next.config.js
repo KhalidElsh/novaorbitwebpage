@@ -7,7 +7,13 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
-  // Remove the webpack config since we're using public directory
+  // Add this to ensure static files are copied
+  transpilePackages: [],
+  experimental: {
+    outputFileTracingIncludes: {
+      '/**/*': ['./public/**/*']
+    }
+  }
 };
 
 module.exports = nextConfig;
