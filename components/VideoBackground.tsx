@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import backgroundVideo from '@/public/background.mp4'; // Import video at the top
+import backgroundVideo from '@/public/assets/background.mp4'; // Import video at the top
 
 const VideoBackground = () => {
   const [isLoading, setIsLoading] = useState(true);
