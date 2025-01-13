@@ -43,7 +43,7 @@ const VideoBackground = () => {
           ${isPlaying ? 'opacity-100' : 'opacity-0'}
         `}
       >
-        <source src="/background.mp4" type="video/mp4" />
+        <source src="/_next/static/media/background.mp4" type="video/mp4" />
       </video>
       
       <div className="absolute inset-0 bg-black/50" />
