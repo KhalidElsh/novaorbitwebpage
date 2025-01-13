@@ -25,7 +25,10 @@ const VideoBackground = () => {
         playsInline
         className="w-full h-full object-cover"
       >
-        <source src="/assets/background.mp4" type="video/mp4" />
+        <source
+          src={process.env.NEXT_PUBLIC_VIDEO_URL}
+          type="video/mp4"
+        />
       </video>
       <div className="absolute inset-0 bg-black/50" />
     </div>
@@ -33,5 +36,5 @@ const VideoBackground = () => {
 };
 
 export default dynamic(() => Promise.resolve(VideoBackground), {
-  ssr: false
+  ssr: false,
 });
