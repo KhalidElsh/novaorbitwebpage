@@ -1,15 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',  // Add this for AWS Amplify deployment
+  output: 'standalone',
   experimental: {
-    optimizeCss: true,
+    // Remove or disable optimizeCss since it's causing issues
+    // optimizeCss: true,
   },
   typescript: {
-    // Add this to handle TypeScript errors during build
     ignoreBuildErrors: true,
   },
   eslint: {
-    // Add this to handle ESLint errors during build
     ignoreDuringBuilds: true,
   },
   webpack(config) {
